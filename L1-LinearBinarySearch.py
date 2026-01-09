@@ -1,67 +1,153 @@
 '''
-Docstring for DSA Python.L1-LinearBinarySearch
+L1-LinearBinarySearch
 
-In this module, we implement both Binary Search and Linear Search algorithms in Python.
-We also compare their time complexities by measuring the time taken to search for an element in a sorted array.
+This module provides robust Binary Search and Linear Search implementations
+with explicit handling for common edge cases:
 
-First we import the time and random module to measure execution time and generate random numbers.
-Second, we define an unsorted array and sort it, and set the target number to be found. 
-Then, we implement the binary_search function that performs binary search on the array.
+- empty input (`arr` is empty)
+- single-element arrays
+- target at first/second/middle positions
+- target not present
+- arrays with repeating elements (returns first index or all indices)
 
-How is binary search implemented?
-1. Initialize two pointers, left and right, to the start and end of the array.
-2. While left is less than or equal to right:
-   a. Calculate the mid index.
-   b. If the middle element is equal to the target, return the mid index.
-   c. If the middle element is less than the target, move the left pointer to mid + 1.
-   d. If the middle element is greater than the target, move the right pointer to mid - 1.
-3. If the target is not found, return -1.
+Functions:
+- `binary_search(arr, target)` -> int
+    Returns any index where `target` is found, or -1 if not found.
 
-Next, we implement the linear_search function that performs linear search on the array.
-1. Iterate through each element in the array.
-2. If the current element is equal to the target, return the index.
-3. If the target is not found after checking all elements, return -1.
+- `binary_search_first(arr, target)` -> int
+    Returns the first (leftmost) index of `target` in a sorted array, or -1.
 
-Finally, we measure and print the time taken for both search algorithms to find the target element in the array.
+- `binary_search_all(arr, target)` -> list[int]
+    Returns a list of all indices where `target` occurs (sorted, empty if none).
 
-The final time taken for each search method is printed to the console and shows the efficiency difference between not only binary search and linear search but also between O(log n) and O(n).
-Through this we can clearly see that binary search is significantly faster than linear search for large datasets.
+- `linear_search(arr, target)` -> int
+    Returns the first index of `target` (scans left-to-right), or -1.
+
+- `linear_search_all(arr, target)` -> list[int]
+    Returns a list of all indices where `target` occurs (empty if none).
+
+All functions gracefully handle empty input and single-element arrays.
 '''
-import time,random
-#`Implementing Binary and Linear Search in Python
+import time
+import random
+
+# Example data used later for timing/demo
 unsorted_list = [random.randint(1, 10000) for _ in range(10000)]
-arr1=sorted(unsorted_list)
-num_to_b_found=arr1[random.randint(0,9999)]
-def binary_search(arr:list,target:int)->int:
-    left,right=0,len(arr)-1
-    while left<=right:
-        mid=(left+right)//2
-        if arr[mid]==target:
+arr1 = sorted(unsorted_list)
+num_to_b_found = arr1[random.randint(0, len(arr1) - 1)]
+
+
+def binary_search(arr: list, target: int) -> int:
+    """Standard binary search.
+
+    Returns any index where `target` is found (in a sorted array),
+    or -1 if not found. Handles empty arrays.
+    """
+    if not arr:
+        return -1
+    left, right = 0, len(arr) - 1
+    while left <= right:
+        mid = (left + right) // 2
+        if arr[mid] == target:
             return mid
-        elif arr[mid]<target:
-            left=mid+1
+        elif arr[mid] < target:
+            left = mid + 1
         else:
-            right=mid-1
+            right = mid - 1
     return -1
 
-# Linear Binary Search Implementation
-def linear_search(arr:list,target:int)->int:
-    for i in range(len(arr)):
-        if arr[i]==target:
+
+def binary_search_first(arr: list, target: int) -> int:
+    """Return the first (leftmost) index of `target` in `arr`, or -1.
+
+    Useful when `arr` may contain repeated elements.
+    """
+    if not arr:
+        return -1
+    left, right = 0, len(arr) - 1
+    res = -1
+    while left <= right:
+        mid = (left + right) // 2
+        if arr[mid] == target:
+            res = mid
+            right = mid - 1
+        elif arr[mid] < target:
+            left = mid + 1
+        else:
+            right = mid - 1
+    return res
+
+
+def binary_search_all(arr: list, target: int) -> list:
+    """Return a list of all indices where `target` occurs in the sorted `arr`.
+
+    Returns an empty list if `target` is not present.
+    This finds one occurrence then expands left/right to collect the full block
+    (efficient because equal elements are contiguous in a sorted array).
+    """
+    idx = binary_search(arr, target)
+    if idx == -1:
+        return []
+    l = idx
+    while l - 1 >= 0 and arr[l - 1] == target:
+        l -= 1
+    r = idx
+    while r + 1 < len(arr) and arr[r + 1] == target:
+        r += 1
+    return list(range(l, r + 1))
+
+
+def linear_search(arr: list, target: int) -> int:
+    """Return the first index of `target` by scanning left-to-right, or -1.
+
+    Works for unsorted arrays and handles empty inputs.
+    """
+    for i, v in enumerate(arr):
+        if v == target:
             return i
     return -1
 
-# Checking the time complexity of both algorithms
-# Time Complexity of Binary Search: O(log n)
-time_start=time.time()
-result=binary_search(arr1,num_to_b_found)
-print(f"Element found at index: {result}" if result!=-1 else "Element not found")
-time_end=time.time()
-print(f"Time taken for Binary Search: {time_end-time_start} seconds")
 
-# Time Complexity of Linear Search: O(n)
-time_start=time.time()
-result=linear_search(arr1,num_to_b_found)
-print(f"Element found at index: {result}" if result!=-1 else "Element not found")
-time_end=time.time()
-print(f"Time taken for Linear Search: {time_end-time_start} seconds")
+def linear_search_all(arr: list, target: int) -> list:
+    """Return all indices where `target` occurs (left-to-right scan).
+
+    Returns an empty list if not found.
+    """
+    return [i for i, v in enumerate(arr) if v == target]
+
+
+if __name__ == "__main__":
+    # Demo: simple timing using the randomly generated sorted array
+    print("-- Demo: timing on a large random sorted array --")
+    time_start = time.time()
+    result = binary_search(arr1, num_to_b_found)
+    print(f"Binary search: Element found at index: {result}" if result != -1 else "Binary search: Element not found")
+    time_end = time.time()
+    print(f"Time taken for Binary Search: {time_end - time_start} seconds")
+
+    time_start = time.time()
+    result = linear_search(arr1, num_to_b_found)
+    print(f"Linear search: Element found at index: {result}" if result != -1 else "Linear search: Element not found")
+    time_end = time.time()
+    print(f"Time taken for Linear Search: {time_end - time_start} seconds")
+
+    # Explicit edge-case checks
+    print("\n-- Edge-case checks --")
+    tests = [
+        ([], 5, "empty array"),
+        ([7], 7, "single-element array where element is target"),
+        ([7], 3, "single-element array where element is not target"),
+        ([1, 2, 3, 4, 5], 1, "target is first element"),
+        ([1, 2, 3, 4, 5], 2, "target is second element"),
+        ([1, 2, 3, 4, 5], 3, "target in middle"),
+        ([1, 2, 2, 2, 3, 4], 2, "repeating elements, multiple positions"),
+        ([1, 3, 5, 7], 4, "target not present"),
+    ]
+
+    for arr, t, desc in tests:
+        print(f"\nTest: {desc} -> arr={arr}, target={t}")
+        print("binary_search:", binary_search(arr, t))
+        print("binary_search_first:", binary_search_first(arr, t))
+        print("binary_search_all:", binary_search_all(arr, t))
+        print("linear_search:", linear_search(arr, t))
+        print("linear_search_all:", linear_search_all(arr, t))
