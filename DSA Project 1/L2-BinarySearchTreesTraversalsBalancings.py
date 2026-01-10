@@ -75,6 +75,12 @@ class UserDatabase:
         # return introduces in insertion order (dict preserves insertion order)
         return [u.introduce() for u in self._users.values()]
 
+class TreeNode:
+    def __init__(self,key):
+        self.key = key
+        self.left = None
+        self.right = None
+
 
 if __name__ == "__main__":
     # Scenario tests requested by user
@@ -156,3 +162,31 @@ if __name__ == "__main__":
     print("Before inserts:", vdb.list_all_users())
     vdb.insert_user(user("last", "Last", "last@example.com"))
     print("After insert:", vdb.list_all_users())
+
+    # Lets create objects representing each node of the tree
+    tree_tuple = ((1,3,None),2,((None,3,4),5,(6,7,8)))
+
+    # Function to build tree from nested tuple
+    def build_tree(tup):
+        print(f"build_tree called with: {tup!r}")
+        if isinstance(tup, tuple) and len(tup) == 3:
+            node = TreeNode(tup[1])
+            node.left = build_tree(tup[0])
+            node.right = build_tree(tup[2])
+        elif tup is None:
+            node = None
+        else:
+            node = TreeNode(tup)
+        return node
+
+    
+    root = build_tree(tree_tuple)
+    print(f"Constructed tree root: {root.key}")
+    print(f"Left child of root: {root.left.key if root.left else None}")
+    print(f"Right child of root: {root.right.key if root.right else None}")
+    print(f"Left-Left grandchild of root: {root.left.left.key if root.left and root.left.left else None}")
+    print(f"Right-Left grandchild of root: {root.right.left.key if root.right and root.right.left else None}")
+    print(f"Right-Right grandchild of root: {root.right.right.key if root.right and root.right.right else None}")
+    print(f"Right-Right-Left great-grandchild of root: {root.right.right.left.key if root.right and root.right.right and root.right.right.left else None}")
+    print(f"Right-Right-Right great-grandchild of root: {root.right.right.right.key if root.right and root.right.right and root.right.right.right else None}")
+    # Further tree traversal and balancing tests would go here
