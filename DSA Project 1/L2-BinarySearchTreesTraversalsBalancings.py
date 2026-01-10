@@ -1,21 +1,32 @@
 '''
 L2-BinarySearchTreesTraversalsBalancings
 
-This module implements a minimal `user` model and a `UserDatabase` with
-operations to insert, find, update, and list users. It includes validation
-and scenario tests covering insertion, duplicate detection, missing/None
-fields, case-sensitivity, update persistence, and listing behavior.
+This module provides two sets of utilities used for small demos and
+manual testing:
 
-Provided classes / functions:
-- `user`: simple data holder with `username`, `name`, `email` and `introduce()`
-- `UserDatabase`: multi-user storage with methods:
-    - `insert_user(user_obj)` -> str
-    - `find_user(username)` -> str (introduce() string or "User not found")
-    - `update(username, new_email)` -> str
-    - `list_all_users()` -> list[str]
+- A minimal `user` model and a `UserDatabase` that supports inserting,
+    finding, updating, and listing users. The database handles duplicate
+    usernames, `None`/invalid inputs, and supports an optional case-sensitivity
+    mode.
 
-All public methods handle empty/None inputs gracefully and return clear
-messages suitable for simple unit testing and manual scenario verification.
+- A tiny binary-tree utility that can build a `TreeNode` structure from a
+    nested-tuple representation (`build_tree`) and convert a tree back to the
+    same nested-tuple format (`tree_to_tuple`). `build_tree` emits a debug
+    print for each call to aid tracing recursive construction; `tree_to_tuple`
+    returns scalar values for leaves so the reconstructed tuple matches the
+    original mixed representation.
+
+Public API / behavior summary:
+- `user`: data holder with `username`, `name`, `email`, and `introduce()`.
+- `UserDatabase`: `insert_user(user_obj)`, `find_user(username)`,
+    `update(username, new_email)`, `list_all_users()` — returns clear
+    messages useful for scenario testing.
+- `TreeNode`, `build_tree(tup)`, `tree_to_tuple(node)` — helpers for
+    converting between nested tuples and tree nodes.
+
+The `if __name__ == "__main__"` block contains scenario tests demonstrating
+Insert / Find / Update / List cases for the user database and verifies that
+`tree_to_tuple(build_tree(orig_tuple)) == orig_tuple` for the provided example.
 '''
 
 class user:
@@ -178,15 +189,37 @@ if __name__ == "__main__":
         else:
             node = TreeNode(tup)
         return node
+    def tree_to_tuple(node):
+        if node is None:
+            return None
+        # If it's a leaf, return the scalar key to match the original tuple format
+        if node.left is None and node.right is None:
+            return node.key
+        left = tree_to_tuple(node.left)
+        right = tree_to_tuple(node.right)
+        return (left, node.key, right)
+    def display_keys(node, space="\t", level=0):
+        # If node is empty
+        if node is None:
+            print(space * level + "*")
+            return
+        # If node is leaf
+        if node.left is None and node.right is None:
+            print(space * level + str(node.key))
+        # If node has children 
+        display_keys(node.right, space, level + 1)
+        print(space * level + str(node.key))
+        display_keys(node.left, space, level + 1)
 
-    
     root = build_tree(tree_tuple)
-    print(f"Constructed tree root: {root.key}")
-    print(f"Left child of root: {root.left.key if root.left else None}")
-    print(f"Right child of root: {root.right.key if root.right else None}")
-    print(f"Left-Left grandchild of root: {root.left.left.key if root.left and root.left.left else None}")
-    print(f"Right-Left grandchild of root: {root.right.left.key if root.right and root.right.left else None}")
-    print(f"Right-Right grandchild of root: {root.right.right.key if root.right and root.right.right else None}")
-    print(f"Right-Right-Left great-grandchild of root: {root.right.right.left.key if root.right and root.right.right and root.right.right.left else None}")
-    print(f"Right-Right-Right great-grandchild of root: {root.right.right.right.key if root.right and root.right.right and root.right.right.right else None}")
-    # Further tree traversal and balancing tests would go here
+    # Display the constructed tree using tree_to_tuple and compare with original
+    reconstructed = tree_to_tuple(root)
+    print("Constructed tree as nested tuple:", reconstructed)
+    print("Original tuple:", tree_tuple)
+    if reconstructed == tree_tuple:
+        print("tree_to_tuple returned a structure equal to the original tuple.")
+    else:
+        print("Warning: reconstructed tuple differs from original.")
+    # Using display_keys to visualize the tree
+    print("\nVisual representation of the tree:")
+    display_keys(root,' ')
